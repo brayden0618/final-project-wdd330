@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <img src="images/logo.png" alt="Board Games">
+
+    <h1>Board/Card Games Survey</h1>
+
+    <form action="results.html" method="get">
+
+        <!-- Question 1 -->
+        <label for="players">How many players do you prefer to play with?</label>
+        <select id="players" name="players" required>
+            <option value="" disabled selected hidden>Select</option>
+            <option value="1-2">1-2</option>
+            <option value="3-4">3-4</option>
+            <option value="5+">5+</option>
+        </select>
+        <br><br>
+        
+        <!-- Question 2 -->
+        <label for="duration">How long do you prefer to play?</label>
+        <select id="duration" name="duration" required>
+            <option value="" disabled selected hidden>Select</option>
+            <option value="short">15-30 minutes</option>
+            <option value="medium">30-60 minutes</option>
+            <option value="long">60+ minutes</option>
+        </select>
+        <br><br>
+
+        <!-- Question 3 -->
+        <label for="complexity">How complex do you prefer your games to be?</label>
+        <select id="complexity" name="complexity" required>
+            <option value="" disabled selected hidden>Select</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+        <br><br>
+
+        <!-- Question 4 -->
+        <label for="theme">What themes do you enjoy?</label>
+        <select id="theme" name="theme" required>
+            <option value="" disabled selected hidden>Select</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="adventure">Adventure</option>
+            <option value="family">Family</option>
+            <option value="sci-fi">Sci-Fi</option>
+        </select>
+        <br><br>
+
+        <!-- Question 5 -->
+        <label for="style">What style of game do you prefer?</label>
+        <select id="style" name="style" required>
+            <option value="" disabled selected hidden>Select</option>
+            <option value="board-game">Board Game</option>
+            <option value="card-game">Card Game</option>
+            <option value="hybrid">Hybrid (Board & Card)</option>
+        </select>
+        <br><br>
+
+        <!-- Submit Button -->
+        <input type="submit" value="Get Recommendations">
+    </form>
+    <br>
+    <footer>
+        <p>© 2026 Board/Card Games Survey. Brayden Wayman. All rights reserved.</p>
+    </footer>
+</body>
+</html>
