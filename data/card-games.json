@@ -1,0 +1,58 @@
+{
+  "fantasy": [
+    {
+      "id": "1",
+      "name": "Magic: The Gathering",
+      "type": "Trading Card Game",
+      "rarity": "Rare",
+      "images": {
+        "small": "images/cards/magic-small.jpg",
+        "large": "images/cards/magic-large.jpg"
+      },
+      "attack": "5",
+      "defense": "3"
+    }
+  ],
+  "family": [
+    {
+      "id": "2",
+      "name": "Pokémon TCG",
+      "type": "Trading Card Game",
+      "rarity": "Common",
+      "images": {
+        "small": "images/cards/pokemon-small.jpg",
+        "large": "images/cards/pokemon-large.jpg"
+      },
+      "attack": "4",
+      "defense": "4"
+    }
+  ],
+  "adventure": [
+    {
+      "id": "3",
+      "name": "Digimon Card Game",
+      "type": "Trading Card Game",
+      "rarity": "Uncommon",
+      "images": {
+        "small": "images/cards/digimon-small.jpg",
+        "large": "images/cards/digimon-large.jpg"
+      },
+      "attack": "6",
+      "defense": "2"
+    }
+  ],
+  "sci-fi": [
+    {
+      "id": "4",
+      "name": "Star Wars TCG",
+      "type": "Trading Card Game",
+      "rarity": "Rare",
+      "images": {
+        "small": "images/cards/starwars-small.jpg",
+        "large": "images/cards/starwars-large.jpg"
+      },
+      "attack": "5",
+      "defense": "5"
+    }
+  ]
+}

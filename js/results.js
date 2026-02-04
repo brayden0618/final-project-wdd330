@@ -1,184 +1,211 @@
-console.log("results.js loaded");
-
-/* Read survey parameters */
-const params = new URLSearchParams(window.location.search);
-
-const preferences = {
-    players: params.get("players"),
-    duration: params.get("duration"),
-    complexity: params.get("complexity"),
-    theme: params.get("theme"),
-    style: params.get("style")
+// User Preferences from URL
+// -----------------------------
+const PREFERENCES = {
+  players: new URLSearchParams(window.location.search).get("players"),
+  duration: new URLSearchParams(window.location.search).get("duration"),
+  complexity: new URLSearchParams(window.location.search).get("complexity"),
+  theme: new URLSearchParams(window.location.search).get("theme"),
+  style: new URLSearchParams(window.location.search).get("style")
 };
 
-console.log("Preferences:", preferences);
+// Store preferences in localStorage
+localStorage.setItem("preferences", JSON.stringify(PREFERENCES));
 
-/* DOM elements */
+// -----------------------------
+// DOM Elements
+// -----------------------------
 const summaryEl = document.getElementById("summary");
-const resultsEl = document.getElementById("recommendations");
+const boardEl = document.getElementById("board-games");
+const cardEl = document.getElementById("card-games");
 
-if (!summaryEl || !resultsEl) {
-    console.error("Missing #summary or #recommendations element");
-}
-
-/* Save preferences to localStorage */
-localStorage.setItem("preferences", JSON.stringify(preferences));
-
-/* Display preferences summary */
+// -----------------------------
+// Display user preferences
+// -----------------------------
 summaryEl.innerHTML = `
   <h2>Your Preferences</h2>
   <ul>
-    ${Object.entries(preferences)
-        .map(([key, value]) => `<li><strong>${key}:</strong> ${value}</li>`)
-        .join("")}
+    ${Object.entries(PREFERENCES).map(([k,v]) => `<li><strong>${k}:</strong> ${v}</li>`).join("")}
   </ul>
 `;
 
-/* BOARD GAME LOGIC */
+// -----------------------------
+// Favorites
+// -----------------------------
+let FAVORITES = JSON.parse(localStorage.getItem("favorites")) || [];
 
-/* Choose a board game based on answers */
-function chooseBoardGame(prefs) {
-    if (prefs.complexity === "hard") return "Gloomhaven";
-    if (prefs.duration === "long") return "Terraforming Mars";
-    if (prefs.theme === "family") return "Ticket to Ride";
-    if (prefs.players === "1-2") return "Jaipur";
-    if (prefs.theme === "fantasy") return "Catan";
-    return "Catan";
+function toggleFavorite(gameId, gameType) {
+  const key = `${gameType}-${gameId}`;
+  if (FAVORITES.includes(key)) {
+    FAVORITES = FAVORITES.filter(f => f !== key);
+  } else {
+    FAVORITES.push(key);
+  }
+  localStorage.setItem("favorites", JSON.stringify(FAVORITES));
 }
 
-/* Fetch BoardGameGeek data */
-async function fetchBoardGameFromBGG(gameName) {
-    try {
-        console.log("Searching BGG for:", gameName);
+// -----------------------------
+// Board Games (local JSON)
+// -----------------------------
+let BOARD_GAMES_DATA = {};
 
-        // SEARCH endpoint
-        const searchUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(
-            gameName
-        )}&type=boardgame`;
-
-        const searchResponse = await fetch(searchUrl);
-        const searchText = await searchResponse.text();
-
-        const searchXML = new DOMParser().parseFromString(
-            searchText,
-            "application/xml"
-        );
-
-        const item = searchXML.querySelector("item");
-        if (!item) throw new Error("Game not found on BGG");
-
-        const gameId = item.getAttribute("id");
-
-        // THING endpoint
-        const detailsUrl = `https://boardgamegeek.com/xmlapi2/thing?id=${gameId}`;
-        const detailsResponse = await fetch(detailsUrl);
-        const detailsText = await detailsResponse.text();
-
-        const detailsXML = new DOMParser().parseFromString(
-            detailsText,
-            "application/xml"
-        );
-
-        return {
-            name: detailsXML
-                .querySelector('name[type="primary"]')
-                .getAttribute("value"),
-            image:
-                detailsXML.querySelector("image")?.textContent ||
-                "images/placeholder.png",
-            description:
-                detailsXML.querySelector("description")?.textContent ||
-                "No description available.",
-            minPlayers:
-                detailsXML.querySelector("minplayers")?.getAttribute("value"),
-            maxPlayers:
-                detailsXML.querySelector("maxplayers")?.getAttribute("value"),
-            playTime:
-                detailsXML.querySelector("playingtime")?.getAttribute("value")
-        };
-    } catch (error) {
-        console.error("BGG API error:", error);
-        return null;
-    }
+async function loadBoardGames() {
+  try {
+    const boardRes = await fetch("data/board-games.json");
+    BOARD_GAMES_DATA = await boardRes.json();
+    console.log("Board games loaded:", BOARD_GAMES_DATA);
+  } catch (err) {
+    console.error("Error loading board games:", err);
+  }
 }
 
-/* CARD GAME LOGIC */
+async function displayBoardGames() {
+  if (!PREFERENCES.theme) {
+    boardEl.innerHTML = "<p>Please select a theme to see board games.</p>";
+    return;
+  }
 
-async function fetchCardGameData() {
-    try {
-        resultsEl.innerHTML =
-            "<p>Drawing cards to recommend a card game...</p>";
+  const selected = BOARD_GAMES_DATA[PREFERENCES.theme];
+  console.log("Selected board games:", selected);
 
-        const response = await fetch(
-            "https://deckofcardsapi.com/api/deck/new/draw/?count=5"
-        );
+  if (!selected || selected.length === 0) {
+    boardEl.innerHTML = "<p>No board games match your preferences.</p>";
+    return;
+  }
 
-        const data = await response.json();
+  boardEl.innerHTML = "";
+  for (const item of selected.slice(0, 5)) {
+    const section = document.createElement("div");
+    section.classList.add("board-game");
 
-        return data.cards.map((card) => ({
-            image: card.image,
-            value: card.value,
-            suit: card.suit
-        }));
-    } catch (error) {
-        console.error("Card API error:", error);
-        return [];
-    }
-}
+    const key = `board-${item.id}`;
+    const isFav = FAVORITES.includes(key);
 
-/* LOAD RESULTS BASED ON STYLE */
-
-if (preferences.style === "board-game" || preferences.style === "hybrid") {
-    const gameName = chooseBoardGame(preferences);
-
-    resultsEl.innerHTML =
-        "<p>Finding the perfect board game for you...</p>";
-
-    fetchBoardGameFromBGG(gameName).then((game) => {
-        if (!game) {
-            resultsEl.innerHTML =
-                "<p>Sorry, we couldn’t load a board game recommendation.</p>";
-            return;
-        }
-
-        resultsEl.innerHTML = `
-      <h2>Recommended Board Game</h2>
-
+    section.innerHTML = `
       <h3 class="game-title">
-        ${game.name}
+        ${item.name}
         <span class="game-preview">
-          <img src="${game.image}" alt="${game.name}" width="200">
+          <img src="${item.image}" alt="${item.name}">
         </span>
       </h3>
-
-      <p><strong>Players:</strong> ${game.minPlayers}–${game.maxPlayers}</p>
-      <p><strong>Play Time:</strong> ${game.playTime} minutes</p>
-      <p>${game.description.substring(0, 400)}...</p>
+      <p><strong>Players:</strong> ${item.minPlayers}-${item.maxPlayers}</p>
+      <p><strong>Play Time:</strong> ${item.playTime} minutes</p>
+      <p>${item.description.substring(0, 300)}...</p>
     `;
+
+    const favBtn = document.createElement("button");
+    favBtn.classList.add("fav-btn");
+    if (isFav) favBtn.classList.add("favorited");
+    favBtn.innerHTML = "★";
+    favBtn.addEventListener("click", () => {
+      toggleFavorite(item.id, "board");
+      favBtn.classList.toggle("favorited");
     });
+
+    section.appendChild(favBtn);
+    boardEl.appendChild(section);
+  }
 }
 
-/* CARD GAME RESULT */
-else if (preferences.style === "card-game") {
-    fetchCardGameData().then((cards) => {
-        if (cards.length === 0) {
-            resultsEl.innerHTML =
-                "<p>Sorry, we couldn’t load a card game recommendation.</p>";
-            return;
+// -----------------------------
+// TCGAPIs - Card Games
+// -----------------------------
+const TCG_API_KEY = "c8a07dbb07ed1f340340fae68da53ffd7cce91333ece424b862efc28b5cc3e73"; 
+
+async function fetchTCGAPICards(gameSlug, query) {
+  try {
+    const res = await fetch(
+      `https://api.tcgapis.com/v1/cards/${gameSlug}?q=name:${encodeURIComponent(query)}`,
+      {
+        headers: {
+          "x-api-key": TCG_API_KEY,
+          "Content-Type": "application/json"
         }
+      }
+    );
 
-        resultsEl.innerHTML = `
-      <h2>Recommended Card Game</h2>
-      <p>Based on your preferences, here’s a sample hand you might enjoy:</p>
-      <div class="card-container">
-        ${cards
-                .map(
-                    (card) =>
-                        `<img src="${card.image}" alt="${card.value} of ${card.suit}" width="90">`
-                )
-                .join("")}
-      </div>
-      <p>This style of game emphasizes luck, quick rounds, and replayability.</p>
-    `;
-    });
+    if (!res.ok) throw new Error("TCGAPIs request failed");
+
+    const json = await res.json();
+    return json.data || [];
+  } catch (err) {
+    console.error("TCGAPIs fetch error:", err);
+    return [];
+  }
 }
+
+async function displayCardGames() {
+  if (!PREFERENCES.theme) {
+    cardEl.innerHTML = "<p>Please select a theme to see card games.</p>";
+    return;
+  }
+
+  cardEl.innerHTML = "<p>Loading card games...</p>";
+
+  // Map theme to TCGAPIs game slug
+  const gameSlug = {
+    fantasy: "mtg",
+    family: "pokemon",
+    adventure: "yugioh",
+    sci_fi: "pokemon"
+  }[PREFERENCES.theme];
+
+  const cards = await fetchTCGAPICards(gameSlug, PREFERENCES.theme);
+
+  if (cards.length === 0) {
+    cardEl.innerHTML = "<p>No card games found.</p>";
+    return;
+  }
+
+  cardEl.innerHTML = `<h2>${PREFERENCES.theme} Cards</h2><div class="card-container"></div>`;
+  const container = cardEl.querySelector(".card-container");
+
+  cards.slice(0, 6).forEach(c => {
+    const cardDiv = document.createElement("div");
+    cardDiv.classList.add("tcg-card");
+
+    const imgSrc = c.images?.small || "";
+    const largeImg = c.images?.large || "";
+    const cardName = c.name || "Unknown";
+
+    // Favorite button
+    const favBtn = document.createElement("button");
+    favBtn.classList.add("fav-btn");
+    const key = `card-${c.id}`;
+    if (FAVORITES.includes(key)) favBtn.classList.add("favorited");
+    favBtn.innerHTML = "★";
+
+    favBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleFavorite(c.id, "card");
+      favBtn.classList.toggle("favorited");
+    });
+
+    cardDiv.innerHTML = `
+      <img src="${imgSrc}" alt="${cardName}">
+      <p>${cardName}</p>
+      <span class="card-preview">
+        <img src="${largeImg}" alt="${cardName}">
+      </span>
+    `;
+
+    cardDiv.appendChild(favBtn);
+    container.appendChild(cardDiv);
+  });
+}
+
+// -----------------------------
+// Initialize Page
+// -----------------------------
+(async function () {
+  await loadBoardGames();
+
+  if (PREFERENCES.style === "board-game") {
+    await displayBoardGames();
+  } else if (PREFERENCES.style === "card-game") {
+    await displayCardGames();
+  } else {
+    // hybrid
+    await displayBoardGames();
+    await displayCardGames();
+  }
+})();

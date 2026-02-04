@@ -1,0 +1,46 @@
+{
+  "fantasy": [
+    {
+      "id": "101",
+      "name": "Gloomhaven",
+      "minPlayers": "1",
+      "maxPlayers": "4",
+      "playTime": "120",
+      "description": "Gloomhaven is a cooperative game of tactical combat in a persistent world of shifting motives.",
+      "image": "images/board/gloomhaven.jpg"
+    }
+  ],
+  "family": [
+    {
+      "id": "102",
+      "name": "Ticket to Ride",
+      "minPlayers": "2",
+      "maxPlayers": "5",
+      "playTime": "60",
+      "description": "Collect train cards to claim railway routes across the country in Ticket to Ride.",
+      "image": "images/board/ticket-to-ride.jpg"
+    }
+  ],
+  "adventure": [
+    {
+      "id": "103",
+      "name": "Forbidden Island",
+      "minPlayers": "2",
+      "maxPlayers": "4",
+      "playTime": "45",
+      "description": "Work together to capture treasures from the Forbidden Island before it sinks.",
+      "image": "images/board/forbidden-island.jpg"
+    }
+  ],
+  "sci-fi": [
+    {
+      "id": "104",
+      "name": "Star Realms",
+      "minPlayers": "2",
+      "maxPlayers": "2",
+      "playTime": "20",
+      "description": "A fast-paced deck-building game where players compete for dominance in space.",
+      "image": "images/board/star-realms.jpg"
+    }
+  ]
+}
